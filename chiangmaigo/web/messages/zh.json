@@ -1,0 +1,27 @@
+{
+  "app": {
+    "name": "清迈行"
+  },
+  "nav": {
+    "services": "服务",
+    "faq": "常见问题",
+    "contact": "联系我们",
+    "login": "登录",
+    "register": "注册",
+    "dashboard": "控制台"
+  },
+  "home": {
+    "searchPlaceholder": "搜索旅游服务...",
+    "search": "搜索",
+    "categories": "分类",
+    "popular": "热门服务"
+  },
+  "actions": {
+    "save": "保存",
+    "cancel": "取消",
+    "back": "返回",
+    "next": "下一步"
+  }
+}
+
+

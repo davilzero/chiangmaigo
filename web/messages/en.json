@@ -1,0 +1,26 @@
+{
+  "app": {
+    "name": "ChiangMaiGo"
+  },
+  "nav": {
+    "services": "Services",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "login": "Log in",
+    "register": "Sign up",
+    "dashboard": "Dashboard"
+  },
+  "home": {
+    "searchPlaceholder": "Search travel services...",
+    "search": "Search",
+    "categories": "Categories",
+    "popular": "Popular Services"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next"
+  }
+}
+

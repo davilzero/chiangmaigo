@@ -1,0 +1,25 @@
+{
+  "name": "chiangmaigo",
+  "version": "1.0.0",
+  "description": "แพลตฟอร์มบริการท่องเที่ยวเชียงใหม่",
+  "private": true,
+  "workspaces": [
+    "web",
+    "mobile"
+  ],
+  "scripts": {
+    "dev:web": "cd web && npm run dev",
+    "dev:mobile": "cd mobile && npm run start",
+    "build:web": "cd web && npm run build",
+    "install:all": "npm install && cd web && npm install && cd ../mobile && npm install"
+  },
+  "keywords": [
+    "tourism",
+    "chiangmai",
+    "booking",
+    "travel"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+

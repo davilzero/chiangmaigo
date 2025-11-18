@@ -1,11 +1,11 @@
 'use client'
- 'use client'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Search, User, Menu, X } from 'lucide-react'
+import { Search, User, Menu, X, Bell } from 'lucide-react'
 import { useState } from 'react'
 import { LanguageSwitcher } from './LanguageSwitcher'
+import { NotificationBell } from './NotificationBell'
 import { useAuthStore } from '@/lib/store/authStore'
 import { useRouter } from 'next/navigation'
 
@@ -81,6 +81,7 @@ export function Navbar() {
               </>
             ) : (
               <div className="hidden md:flex items-center gap-2">
+                <NotificationBell />
                 <Link
                   href={dashboardHref}
                   className="px-3 py-2 text-neutral-700 hover:text-primary-600 transition-colors"
@@ -156,6 +157,14 @@ export function Navbar() {
                 </>
               ) : (
                 <>
+                  <Link
+                    href="/user/notifications"
+                    className="block px-4 py-2 hover:bg-neutral-50 rounded-lg flex items-center gap-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Bell className="w-4 h-4" />
+                    การแจ้งเตือน
+                  </Link>
                   <Link
                     href={dashboardHref}
                     className="block px-4 py-2 hover:bg-neutral-50 rounded-lg"

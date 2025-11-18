@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { Search, Filter, MessageSquare, Check, X, Calendar, CreditCard } from 'lucide-react'
+import { addNotification } from '@/lib/utils/notifications'
 
 export default function MerchantBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([])
@@ -91,6 +92,9 @@ export default function MerchantBookingsPage() {
           totalPrice: b.totalPrice,
           status: b.status,
           paymentStatus: b.paymentStatus,
+          userId: b.userId,
+          guestEmail: b.guestEmail,
+          customerId: b.userId || b.guestEmail,
         }))
         local = [...local, ...converted]
       }
@@ -112,13 +116,96 @@ export default function MerchantBookingsPage() {
   }
 
   const handleConfirm = (id: string) => {
-    const next = bookings.map((b) => (b.id === id ? { ...b, status: 'confirmed' } : b))
+    const booking = bookings.find(b => b.id === id)
+    if (!booking) return
+    
+    const next = bookings.map((b) => (b.id === id ? { ...b, status: 'confirmed', paymentStatus: 'paid' } : b))
     persist(next)
+    
+    // Update user bookings
+    if (typeof window !== 'undefined') {
+      const userBookings = localStorage.getItem('user-bookings')
+      if (userBookings) {
+        const list = JSON.parse(userBookings)
+        const updated = list.map((b: any) => 
+          b.id === id ? { ...b, status: 'confirmed', paymentStatus: 'paid' } : b
+        )
+        localStorage.setItem('user-bookings', JSON.stringify(updated))
+      }
+    }
+    
+    // Create notification for customer
+    // Try to find user ID from booking data
+    const customerId = booking.userId || booking.customerId || booking.guestEmail
+    if (customerId) {
+      // Also try to find from user-bookings to get exact userId
+      let exactUserId = customerId
+      if (typeof window !== 'undefined') {
+        const userBookings = localStorage.getItem('user-bookings')
+        if (userBookings) {
+          const list = JSON.parse(userBookings)
+          const found = list.find((b: any) => b.id === id)
+          if (found && found.userId) {
+            exactUserId = found.userId
+          }
+        }
+      }
+      
+      addNotification({
+        userId: exactUserId,
+        title: 'การจองได้รับการยืนยัน',
+        message: `การจองของคุณสำหรับ "${booking.serviceName}" ได้รับการยืนยันแล้ว`,
+        type: 'success',
+        link: `/user/bookings/${id}`,
+      })
+    }
   }
 
   const handleReject = (id: string) => {
-    const next = bookings.map((b) => (b.id === id ? { ...b, status: 'cancelled' } : b))
+    const booking = bookings.find(b => b.id === id)
+    if (!booking) return
+    
+    if (!confirm('คุณต้องการปฏิเสธการจองนี้ใช่หรือไม่?')) return
+    
+    const next = bookings.map((b) => (b.id === id ? { ...b, status: 'cancelled', paymentStatus: 'refunded' } : b))
     persist(next)
+    
+    // Update user bookings
+    if (typeof window !== 'undefined') {
+      const userBookings = localStorage.getItem('user-bookings')
+      if (userBookings) {
+        const list = JSON.parse(userBookings)
+        const updated = list.map((b: any) => 
+          b.id === id ? { ...b, status: 'cancelled', paymentStatus: 'refunded' } : b
+        )
+        localStorage.setItem('user-bookings', JSON.stringify(updated))
+      }
+    }
+    
+    // Create notification for customer
+    const customerId = booking.userId || booking.customerId || booking.guestEmail
+    if (customerId) {
+      // Also try to find from user-bookings to get exact userId
+      let exactUserId = customerId
+      if (typeof window !== 'undefined') {
+        const userBookings = localStorage.getItem('user-bookings')
+        if (userBookings) {
+          const list = JSON.parse(userBookings)
+          const found = list.find((b: any) => b.id === id)
+          if (found && found.userId) {
+            exactUserId = found.userId
+          }
+        }
+      }
+      
+      addNotification({
+        userId: exactUserId,
+        title: 'การจองถูกปฏิเสธ',
+        message: `การจองของคุณสำหรับ "${booking.serviceName}" ถูกปฏิเสธ กรุณาติดต่อผู้ให้บริการสำหรับข้อมูลเพิ่มเติม`,
+        type: 'error',
+        link: `/user/bookings/${id}`,
+      })
+    }
   }
 
   const handleMessage = (id: string) => {

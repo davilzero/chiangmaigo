@@ -6,10 +6,13 @@ import Link from 'next/link'
 import { CheckCircle, XCircle, Loader2, Upload, X, FileImage } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { useMonetizationStore } from '@/lib/store/monetizationStore'
+import { useAuthStore } from '@/lib/store/authStore'
+import { addNotification } from '@/lib/utils/notifications'
 import { mockServices } from '@/lib/mock/services'
 
 function PaymentContent() {
   const router = useRouter()
+  const { user } = useAuthStore()
   const [paymentStatus, setPaymentStatus] = useState<'processing' | 'success' | 'failed' | null>(null)
   const [gateway, setGateway] = useState<'omise' | 'stripe'>('omise')
   const search = useSearchParams()
@@ -139,6 +142,8 @@ function PaymentContent() {
         JSON.parse(localStorage.getItem('monetization-storage') || '{}')?.convenienceFee || 0 : 0
       const subtotal = total - convenienceFee
       
+      const userId = user?.id || (isGuest ? `guest-${guestEmail}` : 'unknown')
+      
       const newBooking = {
         id: `bk_${Date.now()}`,
         serviceId,
@@ -153,6 +158,8 @@ function PaymentContent() {
         packageName,
         category,
         createdAt: new Date().toISOString(),
+        // User information
+        userId: userId !== 'unknown' ? userId : undefined,
         // Guest information
         guestName: isGuest ? guestName : undefined,
         guestEmail: isGuest ? guestEmail : undefined,
@@ -168,6 +175,17 @@ function PaymentContent() {
         } : undefined,
       }
       localStorage.setItem('user-bookings', JSON.stringify([newBooking, ...list]))
+      
+      // Create notification for user
+      if (userId && userId !== 'unknown') {
+        addNotification({
+          userId: userId,
+          title: 'การจองสำเร็จ',
+          message: `การจองของคุณสำหรับ "${serviceName}" สำเร็จแล้ว${isPendingReview ? ' (รอการตรวจสอบสลิป)' : ''}`,
+          type: isPendingReview ? 'info' : 'success',
+          link: `/user/bookings/${newBooking.id}`,
+        })
+      }
       
       // Clear all booking-related temporary data after successful booking
       if (typeof window !== 'undefined') {

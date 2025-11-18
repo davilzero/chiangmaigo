@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # แพลตฟอร์มบริการท่องเที่ยวเชียงใหม่
 
 แพลตฟอร์มศูนย์กลางสำหรับค้นหา จอง และจัดการบริการท่องเที่ยวท้องถิ่นในเชียงใหม่
@@ -104,3 +105,7 @@ npm run ios  # หรือ npm run android
 
 ดูรายละเอียดเพิ่มเติมได้ที่ [`TEST_ACCOUNTS.md`](./TEST_ACCOUNTS.md)
 
+=======
+# chiangmaigo
+Discover, book, and manage local travel services in Chiang Mai with our comprehensive platform
+>>>>>>> origin/main

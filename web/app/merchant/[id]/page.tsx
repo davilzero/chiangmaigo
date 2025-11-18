@@ -267,3 +267,4 @@ export default function MerchantPublicProfilePage({ params }: { params: { id: st
   )
 }
 
+

@@ -179,3 +179,4 @@ npm run db:generate
 - ต้องเชื่อมต่อ Database และ API จริงก่อนใช้งานจริง
 - ต้องตั้งค่า Environment Variables ทั้งหมดก่อนรันโปรเจ็กต์
 
+

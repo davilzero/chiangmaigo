@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Search, Filter, SlidersHorizontal } from 'lucide-react'
 import Link from 'next/link'
@@ -18,7 +18,7 @@ interface ServiceItem {
   reviewCount: number
 }
 
-export default function ServicesPage() {
+function ServicesContent() {
   const searchParams = useSearchParams()
   const [services, setServices] = useState<ServiceItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -240,6 +240,31 @@ export default function ServicesPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function ServicesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-neutral-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-neutral-200 rounded w-1/4 mb-6"></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="card">
+                  <div className="aspect-video bg-neutral-200 rounded-lg mb-4"></div>
+                  <div className="h-4 bg-neutral-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-neutral-200 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <ServicesContent />
+    </Suspense>
   )
 }
 

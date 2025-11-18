@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 
-export default function RegisterPage() {
+function RegisterForm() {
   const search = useSearchParams()
   const [formData, setFormData] = useState({
     name: '',
@@ -149,6 +149,27 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50 py-12">
+        <div className="card max-w-md w-full">
+          <div className="animate-pulse">
+            <div className="h-8 bg-neutral-200 rounded w-3/4 mx-auto mb-6"></div>
+            <div className="space-y-4">
+              <div className="h-10 bg-neutral-200 rounded"></div>
+              <div className="h-10 bg-neutral-200 rounded"></div>
+              <div className="h-10 bg-neutral-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
   )
 }
 

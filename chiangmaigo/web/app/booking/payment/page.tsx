@@ -170,6 +170,35 @@ function PaymentContent() {
       }
       localStorage.setItem('user-bookings', JSON.stringify([newBooking, ...list]))
       
+      // Create notification for user (store in localStorage for frontend)
+      if (typeof window !== 'undefined' && !isGuest) {
+        try {
+          // Get user ID from auth store or localStorage
+          const authStorage = localStorage.getItem('auth-storage')
+          if (authStorage) {
+            const authData = JSON.parse(authStorage)
+            const userId = authData?.state?.user?.id
+            if (userId) {
+              const notifications = JSON.parse(localStorage.getItem('user-notifications') || '[]')
+              const newNotification = {
+                id: `notif_${Date.now()}`,
+                userId: userId,
+                title: 'การจองสำเร็จ',
+                message: `การจองของคุณสำหรับ "${serviceName}" สำเร็จแล้ว${isPendingReview ? ' (รอการตรวจสอบสลิป)' : ''}`,
+                type: isPendingReview ? 'info' : 'success',
+                read: false,
+                createdAt: new Date().toISOString(),
+                link: `/user/bookings/${newBooking.id}`,
+              }
+              localStorage.setItem('user-notifications', JSON.stringify([newNotification, ...notifications]))
+            }
+          }
+        } catch (error) {
+          // Don't fail if notification creation fails
+          console.error('Failed to create notification:', error)
+        }
+      }
+      
       // Clear all booking-related temporary data after successful booking
       if (typeof window !== 'undefined') {
         // Mark booking as completed (to clear forms on next visit)

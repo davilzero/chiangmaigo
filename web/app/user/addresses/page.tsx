@@ -1,11 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Search, Edit, Trash2 } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, X } from 'lucide-react'
 
 export default function UserAddressesPage() {
   const [addresses, setAddresses] = useState<any[]>([])
   const [query, setQuery] = useState('')
+  const [showModal, setShowModal] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [formData, setFormData] = useState({
+    name: '',
+    address: '',
+    type: 'ที่อยู่สำหรับออกใบเสร็จ',
+  })
 
   useEffect(() => {
     const local = typeof window !== 'undefined' ? localStorage.getItem('user-addresses') : null
@@ -31,30 +38,53 @@ export default function UserAddressesPage() {
 
   const save = (list: any[]) => {
     setAddresses(list)
-    localStorage.setItem('user-addresses', JSON.stringify(list))
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('user-addresses', JSON.stringify(list))
+    }
   }
 
-  const addAddress = () => {
-    const name = prompt('ชื่อที่อยู่ (เช่น บ้าน/ที่ทำงาน)') || ''
-    if (!name) return
-    const address = prompt('รายละเอียดที่อยู่') || ''
-    if (!address) return
-    const type = prompt('ประเภท (ที่อยู่สำหรับออกใบเสร็จ/ที่อยู่สำหรับจัดส่งเอกสาร)') || 'ที่อยู่สำหรับออกใบเสร็จ'
-    const next = [
-      { id: Date.now(), name, address, type, isDefault: addresses.length === 0 },
-      ...addresses,
-    ]
-    save(next)
+  const openAddModal = () => {
+    setFormData({ name: '', address: '', type: 'ที่อยู่สำหรับออกใบเสร็จ' })
+    setEditingId(null)
+    setShowModal(true)
   }
 
-  const editAddress = (id: number) => {
+  const openEditModal = (id: number) => {
     const item = addresses.find((a) => a.id === id)
     if (!item) return
-    const name = prompt('ชื่อที่อยู่', item.name) || item.name
-    const address = prompt('รายละเอียดที่อยู่', item.address) || item.address
-    const type = prompt('ประเภท', item.type) || item.type
-    const next = addresses.map((a) => (a.id === id ? { ...a, name, address, type } : a))
-    save(next)
+    setFormData({
+      name: item.name,
+      address: item.address,
+      type: item.type,
+    })
+    setEditingId(id)
+    setShowModal(true)
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.name || !formData.address) {
+      alert('กรุณากรอกข้อมูลให้ครบถ้วน')
+      return
+    }
+
+    if (editingId !== null) {
+      const next = addresses.map((a) =>
+        a.id === editingId ? { ...a, ...formData } : a
+      )
+      save(next)
+    } else {
+      const next = [
+        {
+          id: Date.now(),
+          ...formData,
+          isDefault: addresses.length === 0,
+        },
+        ...addresses,
+      ]
+      save(next)
+    }
+    setShowModal(false)
   }
 
   const removeAddress = (id: number) => {
@@ -75,7 +105,7 @@ export default function UserAddressesPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">จัดการที่อยู่</h1>
-          <button className="btn-primary flex items-center gap-2" onClick={addAddress}>
+          <button className="btn-primary flex items-center gap-2" onClick={openAddModal}>
             <Plus className="w-4 h-4" />
             เพิ่มที่อยู่ใหม่
           </button>
@@ -125,43 +155,128 @@ export default function UserAddressesPage() {
             
             {/* Addresses List */}
             <div className="space-y-4">
-              {filtered.map((address) => (
-                <div key={address.id} className="card">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold">{address.name}</h3>
-                        {address.isDefault && (
-                          <span className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded">
-                            เริ่มต้น
-                          </span>
-                        )}
+              {filtered.length === 0 ? (
+                <div className="card text-center py-12">
+                  <p className="text-neutral-600 text-lg mb-2">ไม่พบที่อยู่</p>
+                  <p className="text-neutral-500 text-sm">
+                    {query ? 'ลองค้นหาด้วยคำอื่น' : 'ยังไม่มีที่อยู่'}
+                  </p>
+                </div>
+              ) : (
+                filtered.map((address) => (
+                  <div key={address.id} className="card">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold">{address.name}</h3>
+                          {address.isDefault && (
+                            <span className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded">
+                              เริ่มต้น
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-neutral-700 mb-2">{address.address}</p>
+                        <p className="text-sm text-neutral-600">{address.type}</p>
                       </div>
-                      <p className="text-neutral-700 mb-2">{address.address}</p>
-                      <p className="text-sm text-neutral-600">{address.type}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg"
-                        onClick={() => editAddress(address.id)}
-                      >
-                        <Edit className="w-5 h-5" />
-                      </button>
-                      <button
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                        onClick={() => removeAddress(address.id)}
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg"
+                          onClick={() => openEditModal(address.id)}
+                        >
+                          <Edit className="w-5 h-5" />
+                        </button>
+                        <button
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          onClick={() => removeAddress(address.id)}
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">
+                {editingId !== null ? 'แก้ไขที่อยู่' : 'เพิ่มที่อยู่ใหม่'}
+              </h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="p-2 hover:bg-neutral-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  ชื่อที่อยู่ <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="เช่น บ้าน/ที่ทำงาน"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  รายละเอียดที่อยู่ <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  rows={4}
+                  className="input"
+                  placeholder="กรอกที่อยู่เต็ม"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  ประเภท <span className="text-red-500">*</span>
+                </label>
+                <select
+                  className="input"
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  required
+                >
+                  <option value="ที่อยู่สำหรับออกใบเสร็จ">ที่อยู่สำหรับออกใบเสร็จ</option>
+                  <option value="ที่อยู่สำหรับจัดส่งเอกสาร">ที่อยู่สำหรับจัดส่งเอกสาร</option>
+                </select>
+              </div>
+              
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="btn-secondary flex-1"
+                >
+                  ยกเลิก
+                </button>
+                <button type="submit" className="btn-primary flex-1">
+                  {editingId !== null ? 'บันทึกการแก้ไข' : 'เพิ่มที่อยู่'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-

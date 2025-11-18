@@ -34,7 +34,11 @@ function BookingConfirmContent() {
       if (!bookingInProgress) {
         const saved = sessionStorage.getItem('guest-info') || localStorage.getItem('guest-info')
         if (saved) {
-          setGuestInfo(JSON.parse(saved))
+          try {
+            setGuestInfo(JSON.parse(saved))
+          } catch (e) {
+            // ignore parse errors
+          }
         }
       } else {
         // Clear form if booking was completed
@@ -44,6 +48,13 @@ function BookingConfirmContent() {
       }
     }
   }, [])
+
+  // Save guest info to sessionStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && guestInfo.name && guestInfo.email) {
+      sessionStorage.setItem('guest-info', JSON.stringify(guestInfo))
+    }
+  }, [guestInfo])
 
   // Load user info if authenticated
   useEffect(() => {

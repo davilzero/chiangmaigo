@@ -28,19 +28,47 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
   const [people, setPeople] = useState<number>(1)
   const [notes, setNotes] = useState<string>('')
 
-  // Clear form data when component mounts if booking was completed
+  // Load form data from sessionStorage on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const bookingCompleted = sessionStorage.getItem('booking-completed')
       if (bookingCompleted) {
-        // Clear form
+        // Clear form if booking was completed
         setDate('')
         setPeople(1)
         setNotes('')
         sessionStorage.removeItem('booking-completed')
+        sessionStorage.removeItem(`booking-form-${params.id}`)
+      } else {
+        // Load saved form data
+        const saved = sessionStorage.getItem(`booking-form-${params.id}`)
+        if (saved) {
+          try {
+            const formData = JSON.parse(saved)
+            if (formData.date) setDate(formData.date)
+            if (formData.people) setPeople(formData.people)
+            if (formData.notes) setNotes(formData.notes)
+            if (formData.selectedPackageId) setSelectedPackageId(formData.selectedPackageId)
+          } catch (e) {
+            // ignore parse errors
+          }
+        }
       }
     }
-  }, [])
+  }, [params.id])
+
+  // Save form data to sessionStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && params.id) {
+      const formData = {
+        date,
+        people,
+        notes,
+        selectedPackageId,
+      }
+      sessionStorage.setItem(`booking-form-${params.id}`, JSON.stringify(formData))
+    }
+  }, [date, people, notes, selectedPackageId, params.id])
 
   useEffect(() => {
     const load = async () => {
@@ -69,6 +97,10 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
   const handleBook = (e: React.FormEvent) => {
     e.preventDefault()
     if (!service) return
+    if (!date) {
+      alert('กรุณาเลือกวันที่')
+      return
+    }
     const pkg = selectedPackage
     const paramsObj = new URLSearchParams({
       id: service.id,
@@ -81,6 +113,16 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
       notes,
       total: String(total),
     })
+    // Save booking form data to sessionStorage for backup
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('booking-form-data', JSON.stringify({
+        serviceId: service.id,
+        date,
+        people,
+        notes,
+        selectedPackageId,
+      }))
+    }
     router.push(`/booking/confirm?${paramsObj.toString()}`)
   }
 

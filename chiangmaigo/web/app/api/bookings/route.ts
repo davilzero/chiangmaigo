@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { authenticateRequest } from '@/lib/auth/middleware'
+import { createBookingSuccessNotification } from '@/lib/utils/notifications'
 
 export async function GET(request: NextRequest) {
   try {
@@ -205,6 +206,20 @@ export async function POST(request: NextRequest) {
         },
       },
     })
+
+    // Create notification for registered users (not guests)
+    if (userId && !isGuest) {
+      try {
+        await createBookingSuccessNotification(
+          userId,
+          booking.id,
+          booking.service.name
+        )
+      } catch (error) {
+        // Don't fail the booking if notification fails
+        console.error('Failed to create notification:', error)
+      }
+    }
 
     return NextResponse.json({
       message: 'Booking created successfully',

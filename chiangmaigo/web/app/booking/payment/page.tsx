@@ -119,6 +119,7 @@ function PaymentContent() {
   const isGuest = search.get('isGuest') === 'true'
   const guestName = search.get('guestName') || ''
   const guestEmail = search.get('guestEmail') || ''
+  const isPendingReview = paymentMethod === 'promptpay' || paymentMethod === 'bank'
 
   if (paymentStatus === 'success') {
     // บันทึกการจองล่าสุดลง localStorage (เดโม)
@@ -185,8 +186,6 @@ function PaymentContent() {
         }
       }
     }
-    
-    const isPendingReview = paymentMethod === 'promptpay' || paymentMethod === 'bank'
     
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
